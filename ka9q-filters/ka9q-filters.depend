@@ -1,0 +1,26 @@
+# depslib dependency file v1.0
+1682236054 source:/home/alberto/ka9q-filters/main.c
+	<assert.h>
+	<stdlib.h>
+	<pthread.h>
+	<memory.h>
+	<complex.h>
+	<math.h>
+	<fftw3.h>
+	"misc.h"
+	"dsp.h"
+	"filter.h"
+
+1682196941 /home/alberto/ka9q-filters/misc.h
+	<pthread.h>
+	<malloc/malloc.h>
+	<malloc.h>
+
+1682196941 /home/alberto/ka9q-filters/dsp.h
+	<complex.h>
+	<math.h>
+
+1682196941 /home/alberto/ka9q-filters/filter.h
+	<complex.h>
+	<fftw3.h>
+
