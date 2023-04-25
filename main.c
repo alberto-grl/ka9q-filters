@@ -19,6 +19,9 @@
 #include "dsp.h"
 #include "filter.h"
 
+#define BLOCKSIZE 1024
+int Samprate = 32000;
+
 
 // Complex norm (sum of squares of real and imaginary parts)
 float const cnrmf(const complex float x){
@@ -401,7 +404,7 @@ int window_filter(int const L,int const M,complex float * const response,float c
   // Pad with zeroes on right side
   memset(buffer+M,0,(N-M)*sizeof(*buffer));
 
-#if 0
+#if 1
   fprintf(stderr,"Filter impulse response, shifted, windowed and zero padded\n");
   for(int n=0;n< N;n++)
     fprintf(stderr,"%d %lg %lg\n",n,crealf(buffer[n]),cimagf(buffer[n]));
@@ -411,11 +414,11 @@ int window_filter(int const L,int const M,complex float * const response,float c
   fftwf_execute(fwd_filter_plan);
   fftwf_destroy_plan(fwd_filter_plan);
 
-#if 0
+#if 1
   fprintf(stderr,"Filter response amplitude\n");
   for(int n=0;n<N;n++){
-    float f = n*192000./N;
-    fprintf(stderr,"%.1f %.1f\n",f,power2dB(cnrmf(buffer[n])));
+    float f = n*Samprate/N;
+    fprintf(stderr,"%.1f %.1f    ",f,power2dB(cnrmf(buffer[n])));
   }
   fprintf(stderr,"\n");
 #endif
@@ -467,7 +470,7 @@ int window_rfilter(int const L,int const M,complex float * const response,float 
   fftwf_execute(fwd_filter_plan);
   fftwf_destroy_plan(fwd_filter_plan);
   fftwf_free(timebuf);
-#if 0
+#if 1
   printf("Filter frequency response\n");
   for(int n=0; n < N/2 + 1; n++)
     printf("%d %g %g (%.1f dB)\n",n,crealf(buffer[n]),cimagf(buffer[n]),
@@ -586,8 +589,6 @@ complex float notch(struct notchfilter * const nf,complex float s){
 
 int main(void)
 {
-#define BLOCKSIZE 4096
-int Samprate = 32000;
  int const L = BLOCKSIZE;
   int const M = BLOCKSIZE + 1;
 //  int const N = L + M - 1;
@@ -607,7 +608,7 @@ struct filter_in *filter_in;
 
 struct filter_out *filter = create_filter_output(filter_in,NULL,1,REAL);  //era COMPLEX
 
-  set_filter(filter,+600./Samprate,+900./Samprate,3.0); // Creates analytic, ba
+  set_filter(filter,+300./Samprate,+2500./Samprate,3.0); // Creates analytic, ba
 
   float freq=650;
 
