@@ -20,7 +20,9 @@
 #include "filter.h"
 
 #define BLOCKSIZE 1024
-int Samprate = 32000;
+
+//TODO: need to use fsamp*2 or filter frequencies are double. Check why.
+int Samprate = 31250*2;
 
 
 // Complex norm (sum of squares of real and imaginary parts)
@@ -554,12 +556,27 @@ int set_filter(struct filter_out * const slave,float const low,float const high,
   complex float *tmp = slave->response;
   slave->response = response;
 
-    for(int n=0;n< N;n++) {
-    fprintf(stderr,"%13.10ff, ", 2000. * crealf(response[n]));
-    if (n%8 == 7)
-         fprintf(stderr,"\n");
+  //TODO Scale factor is used because in ARM_Radio coefficients seem to be normalized at 1. Check why the difference is huge
+  #define TEST_SCALE_FACTOR 2500.0
+  FILE* fptr = fopen("outfile.txt", "w");
+  if (fptr == NULL){
+  fprintf(stderr, "could not open file");
+  return 0;
   }
 
+    for(int n=0;n< N/2;n++) {
+    fprintf(fptr,"%18.15ff, ", TEST_SCALE_FACTOR * crealf(response[n]));
+    if (n%8 == 7)
+         fprintf(fptr,"\n");
+  }
+
+   fprintf(fptr,"\n\n\n\n\n");
+    for(int n=0;n< N/2;n++) {
+    fprintf(fptr,"%18.15ff, ", TEST_SCALE_FACTOR * cimagf(response[n]));
+    if (n%8 == 7)
+         fprintf(fptr,"\n");
+  }
+fclose(fptr);
   slave->noise_gain = noise_gain(slave);
   pthread_mutex_unlock(&slave->response_mutex);
   fftwf_free(tmp);
