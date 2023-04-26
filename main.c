@@ -406,7 +406,8 @@ int window_filter(int const L,int const M,complex float * const response,float c
 
 #if 1
   fprintf(stderr,"Filter impulse response, shifted, windowed and zero padded\n");
-  for(int n=0;n< N;n++)
+  //for(int n=0;n< N;n++)
+      for(int n=0;n< 200;n++)
     fprintf(stderr,"%d %lg %lg\n",n,crealf(buffer[n]),cimagf(buffer[n]));
 #endif
 
@@ -416,9 +417,10 @@ int window_filter(int const L,int const M,complex float * const response,float c
 
 #if 1
   fprintf(stderr,"Filter response amplitude\n");
-  for(int n=0;n<N;n++){
+ //for(int n=0;n< N;n++) {
+      for(int n=0;n< 200;n++) {
     float f = n*Samprate/N;
-    fprintf(stderr,"%.1f %.1f    ",f,power2dB(cnrmf(buffer[n])));
+    fprintf(stderr,"%.1f %.1f   \n",f,power2dB(cnrmf(buffer[n])));
   }
   fprintf(stderr,"\n");
 #endif
@@ -551,6 +553,13 @@ int set_filter(struct filter_out * const slave,float const low,float const high,
   pthread_mutex_lock(&slave->response_mutex);
   complex float *tmp = slave->response;
   slave->response = response;
+
+    for(int n=0;n< N;n++) {
+    fprintf(stderr,"%13.10ff, ", 2000. * crealf(response[n]));
+    if (n%8 == 7)
+         fprintf(stderr,"\n");
+  }
+
   slave->noise_gain = noise_gain(slave);
   pthread_mutex_unlock(&slave->response_mutex);
   fftwf_free(tmp);
@@ -603,7 +612,7 @@ struct filter_in *filter_in;
     sp->input_pointer = 0;
 
     */
-    filter_in = create_filter_input(L,M,REAL);
+     filter_in = create_filter_input(L,M,REAL);
 
 
 struct filter_out *filter = create_filter_output(filter_in,NULL,1,REAL);  //era COMPLEX
