@@ -532,7 +532,10 @@ int set_filter(struct filter_out * const slave,float const low,float const high,
   int const N_dec = L_dec + M_dec - 1;
   int const N = master->ilen + master->impulse_length - 1;
 
-  float gain = 1./((float)N);
+  //TODO: originally gain was scaled by N and this gives coefficients of low value. ARM_Radio has them with abt 1 in the passband.
+
+  // float gain = 1./((float)N);
+  float gain = 1. ;
 #if 1
   if(slave->out_type == REAL || slave->out_type == CROSS_CONJ)
     gain *= M_SQRT1_2;
@@ -556,8 +559,7 @@ int set_filter(struct filter_out * const slave,float const low,float const high,
   complex float *tmp = slave->response;
   slave->response = response;
 
-  //TODO Scale factor is used because in ARM_Radio coefficients seem to be normalized at 1. Check why the difference is huge
-  #define TEST_SCALE_FACTOR 2500.0
+
   FILE* fptr = fopen("outfile.txt", "w");
   if (fptr == NULL){
   fprintf(stderr, "could not open file");
@@ -565,14 +567,14 @@ int set_filter(struct filter_out * const slave,float const low,float const high,
   }
 
     for(int n=0;n< N/2;n++) {
-    fprintf(fptr,"%18.15ff, ", TEST_SCALE_FACTOR * crealf(response[n]));
+    fprintf(fptr,"%18.15ff, ", crealf(response[n]));
     if (n%8 == 7)
          fprintf(fptr,"\n");
   }
 
    fprintf(fptr,"\n\n\n\n\n");
     for(int n=0;n< N/2;n++) {
-    fprintf(fptr,"%18.15ff, ", TEST_SCALE_FACTOR * cimagf(response[n]));
+    fprintf(fptr,"%18.15ff, ", cimagf(response[n]));
     if (n%8 == 7)
          fprintf(fptr,"\n");
   }
@@ -629,10 +631,10 @@ struct filter_in *filter_in;
     sp->input_pointer = 0;
 
     */
-     filter_in = create_filter_input(L,M,REAL);
+    filter_in = create_filter_input(L,M,COMPLEX);
 
 
-struct filter_out *filter = create_filter_output(filter_in,NULL,1,REAL);  //era COMPLEX
+struct filter_out *filter = create_filter_output(filter_in,NULL,1,COMPLEX);  //era COMPLEX
 
   set_filter(filter,+300./Samprate,+2500./Samprate,3.0); // Creates analytic, ba
 
