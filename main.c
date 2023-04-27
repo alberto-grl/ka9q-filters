@@ -20,7 +20,9 @@
 #include "filter.h"
 
 #define BLOCKSIZE 1024
-int Samprate = 32000;
+
+//TODO: need to use fsamp*2 or filter frequencies are double. Check why.
+int Samprate = 31250*2;
 
 
 // Complex norm (sum of squares of real and imaginary parts)
@@ -530,7 +532,10 @@ int set_filter(struct filter_out * const slave,float const low,float const high,
   int const N_dec = L_dec + M_dec - 1;
   int const N = master->ilen + master->impulse_length - 1;
 
-  float gain = 1./((float)N);
+  //TODO: originally gain was scaled by N and this gives coefficients of low value. ARM_Radio has them with abt 1 in the passband.
+
+  // float gain = 1./((float)N);
+  float gain = 1. ;
 #if 1
   if(slave->out_type == REAL || slave->out_type == CROSS_CONJ)
     gain *= M_SQRT1_2;
@@ -554,12 +559,26 @@ int set_filter(struct filter_out * const slave,float const low,float const high,
   complex float *tmp = slave->response;
   slave->response = response;
 
-    for(int n=0;n< N;n++) {
-    fprintf(stderr,"%13.10ff, ", 2000. * crealf(response[n]));
-    if (n%8 == 7)
-         fprintf(stderr,"\n");
+
+  FILE* fptr = fopen("outfile.txt", "w");
+  if (fptr == NULL){
+  fprintf(stderr, "could not open file");
+  return 0;
   }
 
+    for(int n=0;n< N/2;n++) {
+    fprintf(fptr,"%18.15ff, ", crealf(response[n]));
+    if (n%8 == 7)
+         fprintf(fptr,"\n");
+  }
+
+   fprintf(fptr,"\n\n\n\n\n");
+    for(int n=0;n< N/2;n++) {
+    fprintf(fptr,"%18.15ff, ", cimagf(response[n]));
+    if (n%8 == 7)
+         fprintf(fptr,"\n");
+  }
+fclose(fptr);
   slave->noise_gain = noise_gain(slave);
   pthread_mutex_unlock(&slave->response_mutex);
   fftwf_free(tmp);
@@ -612,10 +631,10 @@ struct filter_in *filter_in;
     sp->input_pointer = 0;
 
     */
-     filter_in = create_filter_input(L,M,REAL);
+    filter_in = create_filter_input(L,M,COMPLEX);
 
 
-struct filter_out *filter = create_filter_output(filter_in,NULL,1,REAL);  //era COMPLEX
+struct filter_out *filter = create_filter_output(filter_in,NULL,1,COMPLEX);  //era COMPLEX
 
   set_filter(filter,+300./Samprate,+2500./Samprate,3.0); // Creates analytic, ba
 
